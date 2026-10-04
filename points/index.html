@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#A04235">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>نقاط الإمداد</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#FCF8EC;--sand:#E7DDC5;--sand2:#F2EBDA;--brick:#A04235;--brickdk:#7E3127;--ink:#2E211C;--muted:#7A6A5E;--line:#E3D8C2}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:"Readex Pro",Tahoma,system-ui,sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:420px;margin:0 auto;padding:28px 20px 40px}
+.logo{display:block;width:150px;margin:8px auto 4px}
+.lead{text-align:center;color:var(--muted);margin:0 0 26px;font-size:15px}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}
+.phone{display:flex;direction:ltr;border:1.5px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;margin-bottom:16px}
+.phone span{padding:14px 12px;background:var(--sand2);color:var(--muted);font-weight:600;border-right:1.5px solid var(--line)}
+.phone input,.in{flex:1;border:0;padding:14px;font:inherit;font-size:18px;letter-spacing:1px;background:transparent;width:100%}
+.in{display:block;border:1.5px solid var(--line);border-radius:12px;background:#fff;margin-bottom:16px;direction:ltr;text-align:center;letter-spacing:6px}
+.phone:focus-within,.in:focus{border-color:var(--brick);outline:none}
+input:focus{outline:none}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:600;font-size:16px;background:var(--brick);color:#fff;cursor:pointer}
+.btn:disabled{opacity:.6}
+.link{display:block;margin:16px auto 0;background:none;border:0;color:var(--brick);font:inherit;font-weight:500;cursor:pointer}
+.err{background:#FBE9E6;color:#8A2A1E;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.ok{background:var(--sand2);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px;line-height:1.7}
+.hello{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.hello img{width:84px}
+.hello b{font-size:18px}
+.card{background:var(--brick);color:#fff;border-radius:20px;padding:22px 20px;position:relative;overflow:hidden}
+.card small{opacity:.85;font-size:14px}
+.card .pts{font-size:56px;font-weight:700;line-height:1.1;margin:6px 0 2px;direction:ltr;text-align:right}
+.card .val{font-size:15px;opacity:.92}
+.bar{height:8px;background:rgba(255,255,255,.22);border-radius:99px;margin:16px 0 8px;overflow:hidden}
+.bar i{display:block;height:100%;background:#fff;border-radius:99px}
+.card .hint{font-size:13px;opacity:.9}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:14px}
+.panel h2{font-size:15px;margin:0 0 6px}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.row:last-child{border-bottom:0}
+.plus{color:#3F7A4F;font-weight:600;direction:ltr}.minus{color:var(--brick);font-weight:600;direction:ltr}
+.muted{color:var(--muted);font-size:13px}
+.how{font-size:13.5px;color:var(--muted);line-height:1.9;margin:0}
+.foot{display:flex;justify-content:center;gap:18px;margin-top:18px}
+.spin{width:28px;height:28px;margin:60px auto;border:3px solid var(--sand);border-top-color:var(--brick);border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+'use strict';
+var API='https://mazen1991.app.n8n.cloud/webhook/emdad-points-api';
+var app=document.getElementById('app');
+var S={view:'login',token:null,data:null,msg:'',err:'',busy:false};
+var nf=new Intl.NumberFormat('en-US',{maximumFractionDigits:2});
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){}}
+function digits(s){return String(s||'').replace(/[^0-9٠-٩]/g,'').replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d));});}
+function api(p){
+  if(S.token&&!p.token)p.token=S.token;
+  var b=new URLSearchParams();b.set('p',JSON.stringify(p));
+  return fetch(API,{method:'POST',body:b}).then(function(r){if(!r.ok)throw new Error('الخدمة مش متاحة دلوقتي');return r.json();})
+  .then(function(d){if(!d||d.ok===false){if(d&&d.code==='auth'){logout();}throw new Error((d&&d.error)||'حصل خطأ');}return d;},
+  function(e){if(e instanceof TypeError)throw new Error('تأكد من الإنترنت وحاول تاني');throw e;});
+}
+function logo(){return '<img class="logo" src="../logo.png" alt="الإمداد العصري">';}
+function render(){
+  if(S.view==='login')return vLogin();
+  if(S.view==='forgot')return vForgot();
+  if(S.view==='pin')return vPin();
+  return vHome();
+}
+function phoneField(){return '<label>رقم الجوال</label><div class="phone"><span>+966</span><input id="ph" inputmode="numeric" autocomplete="tel-national" placeholder="5XXXXXXXX" aria-label="رقم الجوال بدون الصفر"></div>';}
+function vLogin(){
+  app.innerHTML=logo()+'<p class="lead">نقاط الولاء</p>'+(S.err?'<div class="err">'+esc(S.err)+'</div>':'')+(S.msg?'<div class="ok">'+esc(S.msg)+'</div>':'')+
+  '<form id="f">'+phoneField()+'<label>الرقم السري</label><input class="in" id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="••••••">'+
+  '<button class="btn"'+(S.busy?' disabled':'')+'>'+(S.busy?'جاري الدخول…':'دخول')+'</button></form>'+
+  '<button class="link" id="fg">نسيت الرقم السري؟</button>';
+  var ph=document.getElementById('ph'),pin=document.getElementById('pin');
+  var last=S.phone||get('emdad_pts_phone');if(last)ph.value=last;
+  ph.oninput=function(){var v=digits(ph.value);if(v.indexOf('966')===0&&v.length>9)v=v.slice(3);if(v.charAt(0)==='0')v=v.slice(1);ph.value=v.slice(0,9);S.phone=ph.value;};
+  pin.oninput=function(){pin.value=digits(pin.value).slice(0,6);};
+  document.getElementById('fg').onclick=function(){S.view='forgot';S.err='';S.msg='';render();};
+  document.getElementById('f').onsubmit=function(e){
+    e.preventDefault();if(S.busy)return;
+    var p=ph.value;if(!/^5[0-9]{8}$/.test(p)){S.err='اكتب رقم الجوال 9 أرقام يبدأ بـ 5';return render();}
+    if(pin.value.length!==6){S.err='الرقم السري 6 أرقام';return render();}
+    S.busy=true;S.err='';S.msg='';render();
+    api({action:'login',phone:p,pin:pin.value}).then(function(d){S.busy=false;S.token=d.token;set('emdad_pts_token',d.token);set('emdad_pts_phone',p);S.view='home';load();})
+    .catch(function(x){S.busy=false;S.err=x.message;render();});
+  };
+}
+function vForgot(){
+  app.innerHTML=logo()+'<p class="lead">استرجاع الرقم السري</p>'+(S.err?'<div class="err">'+esc(S.err)+'</div>':'')+(S.msg?'<div class="ok">'+esc(S.msg)+'</div>':'')+
+  '<form id="f">'+phoneField()+'<button class="btn"'+(S.busy?' disabled':'')+'>'+(S.busy?'جاري الإرسال…':'ابعتلي رقم سري جديد')+'</button></form><button class="link" id="bk">رجوع للدخول</button>';
+  var ph=document.getElementById('ph');
+  var lf=S.phone||get('emdad_pts_phone');if(lf)ph.value=lf;
+  ph.oninput=function(){var v=digits(ph.value);if(v.indexOf('966')===0&&v.length>9)v=v.slice(3);if(v.charAt(0)==='0')v=v.slice(1);ph.value=v.slice(0,9);S.phone=ph.value;};
+  document.getElementById('bk').onclick=function(){S.view='login';S.err='';S.msg='';render();};
+  document.getElementById('f').onsubmit=function(e){
+    e.preventDefault();if(S.busy)return;
+    if(!/^5[0-9]{8}$/.test(ph.value)){S.err='اكتب رقم الجوال 9 أرقام يبدأ بـ 5';return render();}
+    S.busy=true;S.err='';render();
+    api({action:'forgot',phone:ph.value}).then(function(d){S.busy=false;S.view='login';S.msg=d.message;render();})
+    .catch(function(x){S.busy=false;S.err=x.message;render();});
+  };
+}
+function vPin(){
+  app.innerHTML=logo()+'<p class="lead">تغيير الرقم السري</p>'+(S.err?'<div class="err">'+esc(S.err)+'</div>':'')+
+  '<form id="f"><label>الرقم السري الحالي</label><input class="in" id="o" type="password" inputmode="numeric" maxlength="6">'+
+  '<label>الرقم السري الجديد (6 أرقام)</label><input class="in" id="n" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password">'+
+  '<label>تأكيد الرقم الجديد</label><input class="in" id="c" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password">'+
+  '<button class="btn"'+(S.busy?' disabled':'')+'>'+(S.busy?'جاري الحفظ…':'حفظ')+'</button></form><button class="link" id="bk">رجوع</button>';
+  ['o','n','c'].forEach(function(i){var el=document.getElementById(i);el.oninput=function(){el.value=digits(el.value).slice(0,6);};});
+  document.getElementById('bk').onclick=function(){S.view='home';S.err='';render();};
+  document.getElementById('f').onsubmit=function(e){
+    e.preventDefault();if(S.busy)return;
+    var o=document.getElementById('o').value,n=document.getElementById('n').value,c=document.getElementById('c').value;
+    if(n!==c){S.err='الرقمين الجداد مش متطابقين';return render();}
+    S.busy=true;S.err='';render();
+    api({action:'change_pin',old_pin:o,new_pin:n}).then(function(d){S.busy=false;S.token=d.token;set('emdad_pts_token',d.token);S.view='home';S.msg='تم تغيير الرقم السري';render();})
+    .catch(function(x){S.busy=false;S.err=x.message;render();});
+  };
+}
+function vHome(){
+  var d=S.data;
+  if(!d){app.innerHTML=logo()+(S.err?'<div class="err">'+esc(S.err)+'</div><button class="btn" id="rt">حاول تاني</button>':'<div class="spin"></div>');var rt=document.getElementById('rt');if(rt)rt.onclick=load;return;}
+  var pct=Math.min(100,d.points/d.min_redeem*100);
+  var h='<div class="hello"><b>أهلاً '+esc(d.name||'')+'</b><img src="../logo.png" alt="الإمداد العصري"></div>'+(S.msg?'<div class="ok">'+esc(S.msg)+'</div>':'')+
+  '<section class="card"><small>رصيد نقاطك</small><div class="pts">'+nf.format(d.points)+'</div>'+
+  '<div class="val">تساوي <b>'+nf.format(d.value)+'</b> ريال خصم</div>'+
+  '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+  '<div class="hint">'+(d.can_redeem?'تقدر تستخدم نقاطك كخصم في فاتورتك الجاية — قول للكاشير':'فاضلك <b>'+nf.format(d.to_min)+'</b> نقطة وتقدر تستبدل')+'</div></section>';
+  h+='<div class="panel"><h2>آخر الحركات</h2>'+(d.history.length?d.history.map(function(x){
+    return '<div class="row"><span>'+(x.issued>0?'كسبت نقاط':'استخدمت نقاط')+' <span class="muted" dir="ltr">'+esc(x.date)+'</span></span>'+
+    (x.issued>0?'<span class="plus">+'+nf.format(x.issued)+'</span>':'')+(x.used>0?'<span class="minus">−'+nf.format(x.used)+'</span>':'')+'</div>';
+  }).join(''):'<div class="muted" style="padding:8px 0">لسه مفيش حركات</div>')+'</div>';
+  h+='<div class="panel"><h2>إزاي بتكسب نقاط؟</h2><p class="how">كل <b>100 ريال</b> مشتريات من فروع الإمداد = <b>20 نقطة</b>. وكل نقطة = <b>'+nf.format(d.point_value)+'</b> ريال خصم لما رصيدك يوصل <b>'+nf.format(d.min_redeem)+'</b> نقطة. قول رقم جوالك للكاشير في كل فاتورة.</p></div>';
+  h+='<div class="foot"><button class="link" id="rf">تحديث</button><button class="link" id="cp">تغيير الرقم السري</button><button class="link" id="lo">خروج</button></div>';
+  app.innerHTML=h;
+  document.getElementById('rf').onclick=function(){S.msg='';S.data=null;render();load();};
+  document.getElementById('cp').onclick=function(){S.view='pin';S.err='';S.msg='';render();};
+  document.getElementById('lo').onclick=function(){logout();};
+}
+function load(){S.err='';render();api({action:'balance'}).then(function(d){S.data=d;render();}).catch(function(x){if(S.view==='home'){S.err=x.message;render();}});}
+function logout(){S.token=null;S.data=null;set('emdad_pts_token',null);S.view='login';S.msg='';render();}
+S.token=get('emdad_pts_token');
+if(S.token){S.view='home';load();}else render();
+})();
+</script>
+</body>
+</html>
