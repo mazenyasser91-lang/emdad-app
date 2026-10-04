@@ -149,7 +149,7 @@ function vHome(){
   '<div class="val">تساوي <b>'+nf.format(d.value)+'</b> ريال خصم</div>'+
   '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
   '<div class="hint">'+(d.can_redeem?'تقدر تستخدم نقاطك كخصم في فاتورتك الجاية — قول للكاشير':'فاضلك <b>'+nf.format(d.to_min)+'</b> نقطة وتقدر تستبدل')+'</div></section>';
-  if(d.card_code){var bcm=S.bc!==false;var svg=qrSvg(d.card_code);h+='<div class="qr"><h2>كارت الولاء</h2><p>اعرضه للكاشير عشان يسجّل نقاطك</p><div class="tabs2"><button id="tb" class="'+(bcm?'on':'')+'">باركود</button><button id="tq" class="'+(bcm?'':'on')+'">QR</button></div>'+(bcm?'<div class="bc"><svg id="bcv"></svg></div>':(svg?'<div class="box">'+svg+'</div>':''))+'<div class="code">'+esc(d.card_code)+'</div></div>';}
+  var cc=d.client_barcode||d.card_code;if(cc){var bcm=S.bc!==false;var svg=qrSvg(cc);h+='<div class="qr"><h2>كارت الولاء</h2><p>امسحه في الكاشير وهيختارك تلقائياً وتنزل نقاطك</p><div class="tabs2"><button id="tb" class="'+(bcm?'on':'')+'">باركود</button><button id="tq" class="'+(bcm?'':'on')+'">QR</button></div>'+(bcm?'<div class="bc"><svg id="bcv"></svg></div>':(svg?'<div class="box">'+svg+'</div>':''))+'<div class="code">'+esc(cc)+'</div></div>';}
   h+='<div class="panel"><h2>آخر الحركات</h2>'+(d.history.length?d.history.map(function(x){
     return '<div class="row"><span>'+(x.kind==='earn'||x.issued>0?'كسبت نقاط':(x.kind==='refund'?'مرتجع':'استبدلت نقاط'))+' <span class="muted" dir="ltr">'+esc(x.date)+'</span></span>'+
     (x.issued>0?'<span class="plus">+'+nf.format(x.issued)+'</span>':'')+(x.used>0?'<span class="minus">−'+nf.format(x.used)+'</span>':'')+'</div>';
@@ -158,7 +158,7 @@ function vHome(){
   h+='<div class="foot"><button class="link" id="rf">تحديث</button><button class="link" id="cp">تغيير الرقم السري</button><button class="link" id="lo">خروج</button></div>';
   app.innerHTML=h;
   var tb=document.getElementById('tb'),tq=document.getElementById('tq');if(tb){tb.onclick=function(){S.bc=true;render();};tq.onclick=function(){S.bc=false;render();};}
-  var bv=document.getElementById('bcv');if(bv&&window.JsBarcode){try{JsBarcode(bv,d.card_code,{format:'CODE128',width:2,height:80,displayValue:false,margin:10});}catch(e){}}
+  var bv=document.getElementById('bcv');if(bv&&window.JsBarcode){try{JsBarcode(bv,d.client_barcode||d.card_code,{format:'CODE128',width:2,height:80,displayValue:false,margin:10});}catch(e){}}
   document.getElementById('rf').onclick=function(){S.msg='';S.data=null;render();load();};
   document.getElementById('cp').onclick=function(){S.view='pin';S.err='';S.msg='';render();};
   document.getElementById('lo').onclick=function(){logout();};
