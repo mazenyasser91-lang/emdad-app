@@ -10,6 +10,7 @@
 <link rel="icon" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 :root{--cream:#FCF8EC;--sand:#E7DDC5;--sand2:#F2EBDA;--brick:#A04235;--brickdk:#7E3127;--ink:#2E211C;--muted:#7A6A5E;--line:#E3D8C2}
 *{box-sizing:border-box}
@@ -50,6 +51,10 @@ input:focus{outline:none}
 .foot{display:flex;justify-content:center;gap:18px;margin-top:18px}
 .spin{width:28px;height:28px;margin:60px auto;border:3px solid var(--sand);border-top-color:var(--brick);border-radius:50%;animation:s .8s linear infinite}
 @keyframes s{to{transform:rotate(360deg)}}
+.qr{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px;text-align:center}
+.qr h2{font-size:15px;margin:0 0 4px}.qr p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.qr .box{width:200px;height:200px;margin:0 auto}.qr .box svg{width:100%;height:100%}
+.qr .code{direction:ltr;margin-top:8px;font-size:15px;letter-spacing:2px;font-weight:600}
 </style>
 </head>
 <body>
@@ -72,6 +77,7 @@ function api(p){
   .then(function(d){if(!d||d.ok===false){if(d&&d.code==='auth'){logout();}throw new Error((d&&d.error)||'حصل خطأ');}return d;},
   function(e){if(e instanceof TypeError)throw new Error('تأكد من الإنترنت وحاول تاني');throw e;});
 }
+function qrSvg(t){try{if(!window.qrcode||!t)return '';var q=qrcode(0,'M');q.addData(String(t));q.make();return q.createSvgTag({cellSize:6,margin:2,scalable:true});}catch(e){return '';}}
 function logo(){return '<img class="logo" src="../logo.png" alt="الإمداد العصري">';}
 function render(){
   if(S.view==='login')return vLogin();
@@ -140,8 +146,9 @@ function vHome(){
   '<div class="val">تساوي <b>'+nf.format(d.value)+'</b> ريال خصم</div>'+
   '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
   '<div class="hint">'+(d.can_redeem?'تقدر تستخدم نقاطك كخصم في فاتورتك الجاية — قول للكاشير':'فاضلك <b>'+nf.format(d.to_min)+'</b> نقطة وتقدر تستبدل')+'</div></section>';
+  if(d.card_code){var svg=qrSvg(d.card_code);h+='<div class="qr"><h2>كارت الولاء</h2><p>اعرضه للكاشير عشان يسجّل نقاطك</p>'+(svg?'<div class="box">'+svg+'</div>':'')+'<div class="code">'+esc(d.card_code)+'</div></div>';}
   h+='<div class="panel"><h2>آخر الحركات</h2>'+(d.history.length?d.history.map(function(x){
-    return '<div class="row"><span>'+(x.issued>0?'كسبت نقاط':'استخدمت نقاط')+' <span class="muted" dir="ltr">'+esc(x.date)+'</span></span>'+
+    return '<div class="row"><span>'+(x.kind==='earn'||x.issued>0?'كسبت نقاط':(x.kind==='refund'?'مرتجع':'استبدلت نقاط'))+' <span class="muted" dir="ltr">'+esc(x.date)+'</span></span>'+
     (x.issued>0?'<span class="plus">+'+nf.format(x.issued)+'</span>':'')+(x.used>0?'<span class="minus">−'+nf.format(x.used)+'</span>':'')+'</div>';
   }).join(''):'<div class="muted" style="padding:8px 0">لسه مفيش حركات</div>')+'</div>';
   h+='<div class="panel"><h2>إزاي بتكسب نقاط؟</h2><p class="how">كل <b>100 ريال</b> مشتريات من فروع الإمداد = <b>20 نقطة</b>. وكل نقطة = <b>'+nf.format(d.point_value)+'</b> ريال خصم لما رصيدك يوصل <b>'+nf.format(d.min_redeem)+'</b> نقطة. قول رقم جوالك للكاشير في كل فاتورة.</p></div>';
